@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.angular/
+.env
+backend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep
+frontend/.angular/
+frontend/dist/
+frontend/.env
+.idea/workspace.xml

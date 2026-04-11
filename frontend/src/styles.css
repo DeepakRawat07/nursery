@@ -1,0 +1,359 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --page-bg: 245 239 228;
+    --page-fg: 15 23 42;
+    --page-glow-1: 142 182 155;
+    --page-glow-2: 215 127 83;
+    --surface-bg: 255 255 255;
+    --surface-border: 255 255 255;
+    --surface-shadow: 33 75 55;
+    --field-bg: 255 255 255;
+    --field-border: 226 232 240;
+    --field-text: 15 23 42;
+    --field-placeholder: 148 163 184;
+    --accent-text: 33 75 55;
+    --accent-text-soft: 33 75 55;
+    --accent-hover: 47 107 79;
+    --accent-solid: 33 75 55;
+    --accent-solid-hover: 47 107 79;
+    --accent-solid-text: 255 255 255;
+    --seed-surface: 245 239 228;
+  }
+
+  html {
+    font-family: 'Sora', sans-serif;
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --page-bg: 2 6 23;
+    --page-fg: 226 232 240;
+    --page-glow-1: 74 222 128;
+    --page-glow-2: 56 189 248;
+    --surface-bg: 15 23 42;
+    --surface-border: 51 65 85;
+    --surface-shadow: 2 6 23;
+    --field-bg: 15 23 42;
+    --field-border: 51 65 85;
+    --field-text: 226 232 240;
+    --field-placeholder: 100 116 139;
+    --accent-text: 167 243 208;
+    --accent-text-soft: 134 239 172;
+    --accent-hover: 187 247 208;
+    --accent-solid: 110 231 183;
+    --accent-solid-hover: 167 243 208;
+    --accent-solid-text: 2 6 23;
+    --seed-surface: 15 23 42;
+  }
+
+  body {
+    @apply min-h-screen;
+    color: rgb(var(--page-fg));
+    background-color: rgb(var(--page-bg));
+    background-image:
+      radial-gradient(circle at top left, rgb(var(--page-glow-1) / 0.22), transparent 35%),
+      radial-gradient(circle at bottom right, rgb(var(--page-glow-2) / 0.12), transparent 28%);
+    transition:
+      background-color 200ms ease,
+      background-image 200ms ease,
+      color 200ms ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply outline-none;
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      color 200ms ease,
+      box-shadow 200ms ease;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-3xl backdrop-blur;
+    border: 1px solid rgb(var(--surface-border) / 0.5);
+    background-color: rgb(var(--surface-bg) / 0.8);
+    box-shadow: 0 20px 60px rgb(var(--surface-shadow) / 0.12);
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60;
+    background-color: rgb(var(--accent-solid));
+    color: rgb(var(--accent-solid-text));
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--accent-solid-hover));
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5;
+    border: 1px solid rgb(var(--accent-text) / 0.15);
+    background-color: rgb(var(--surface-bg) / 0.92);
+    color: rgb(var(--accent-text));
+  }
+
+  .btn-secondary:hover {
+    border-color: rgb(var(--accent-text) / 0.3);
+    background-color: rgb(var(--surface-bg));
+  }
+
+  .field {
+    @apply w-full rounded-2xl px-4 py-3 text-sm focus:ring-4;
+    border: 1px solid rgb(var(--field-border));
+    background-color: rgb(var(--field-bg));
+    color: rgb(var(--field-text));
+  }
+
+  .field::placeholder {
+    color: rgb(var(--field-placeholder));
+  }
+
+  .field:focus {
+    border-color: rgb(var(--accent-text) / 0.4);
+    --tw-ring-color: rgb(var(--accent-text) / 0.12);
+  }
+
+  .theme-toggle {
+    @apply inline-flex items-center gap-3 rounded-full px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5;
+    border: 1px solid rgb(var(--accent-text) / 0.15);
+    background-color: rgb(var(--surface-bg) / 0.92);
+    color: rgb(var(--accent-text));
+    box-shadow: 0 12px 30px rgb(var(--surface-shadow) / 0.08);
+  }
+
+  .theme-toggle:hover {
+    border-color: rgb(var(--accent-text) / 0.28);
+    background-color: rgb(var(--surface-bg));
+  }
+
+  .theme-toggle-badge {
+    @apply flex h-9 w-9 items-center justify-center rounded-full shadow-sm ring-1;
+    background-color: rgb(255 255 255 / 0.9);
+    color: rgb(var(--accent-text));
+    --tw-ring-color: rgb(0 0 0 / 0.05);
+  }
+
+  html.dark .theme-toggle-badge {
+    background-color: rgb(30 41 59);
+    color: rgb(var(--accent-text-soft));
+    --tw-ring-color: rgb(255 255 255 / 0.08);
+  }
+}
+
+@layer utilities {
+  html.dark .bg-hero-texture {
+    background-image:
+      radial-gradient(circle at 20% 20%, rgb(74 222 128 / 0.2), transparent 35%),
+      radial-gradient(circle at 80% 10%, rgb(56 189 248 / 0.18), transparent 30%),
+      linear-gradient(135deg, rgb(15 23 42) 0%, rgb(17 24 39) 52%, rgb(30 41 59) 100%);
+  }
+
+  html.dark .shadow-soft {
+    box-shadow: 0 24px 80px rgb(2 6 23 / 0.42);
+  }
+
+  html.dark .bg-white {
+    background-color: rgb(15 23 42);
+  }
+
+  html.dark .bg-white\/70 {
+    background-color: rgb(15 23 42 / 0.7);
+  }
+
+  html.dark .bg-white\/75 {
+    background-color: rgb(15 23 42 / 0.75);
+  }
+
+  html.dark .bg-white\/80 {
+    background-color: rgb(15 23 42 / 0.8);
+  }
+
+  html.dark .bg-white\/90 {
+    background-color: rgb(15 23 42 / 0.9);
+  }
+
+  html.dark .bg-slate-50 {
+    background-color: rgb(15 23 42 / 0.96);
+  }
+
+  html.dark .bg-slate-100 {
+    background-color: rgb(30 41 59 / 0.92);
+  }
+
+  html.dark .bg-seed {
+    background-color: rgb(var(--seed-surface));
+  }
+
+  html.dark .bg-seed\/70 {
+    background-color: rgb(var(--seed-surface) / 0.7);
+  }
+
+  html.dark .bg-seed\/80 {
+    background-color: rgb(var(--seed-surface) / 0.8);
+  }
+
+  html.dark .hover\:bg-seed:hover {
+    background-color: rgb(var(--seed-surface));
+  }
+
+  html.dark .bg-moss {
+    background-color: rgb(var(--accent-solid));
+  }
+
+  html.dark .bg-moss\/10 {
+    background-color: rgb(var(--accent-solid) / 0.12);
+  }
+
+  html.dark .bg-sage\/15,
+  html.dark .hover\:bg-sage\/15:hover {
+    background-color: rgb(134 239 172 / 0.15);
+  }
+
+  html.dark .bg-sage\/20 {
+    background-color: rgb(134 239 172 / 0.2);
+  }
+
+  html.dark .bg-amber-100 {
+    background-color: rgb(146 64 14 / 0.4);
+  }
+
+  html.dark .bg-sky-100 {
+    background-color: rgb(3 105 161 / 0.35);
+  }
+
+  html.dark .bg-indigo-100 {
+    background-color: rgb(67 56 202 / 0.32);
+  }
+
+  html.dark .bg-emerald-50 {
+    background-color: rgb(6 95 70 / 0.32);
+  }
+
+  html.dark .bg-emerald-100 {
+    background-color: rgb(6 95 70 / 0.42);
+  }
+
+  html.dark .bg-rose-50 {
+    background-color: rgb(159 18 57 / 0.28);
+  }
+
+  html.dark .bg-rose-100 {
+    background-color: rgb(159 18 57 / 0.38);
+  }
+
+  html.dark .text-moss {
+    color: rgb(var(--accent-text));
+  }
+
+  html.dark .text-moss\/70 {
+    color: rgb(var(--accent-text) / 0.72);
+  }
+
+  html.dark .text-fern,
+  html.dark .hover\:text-fern:hover,
+  html.dark .hover\:text-moss:hover {
+    color: rgb(var(--accent-hover));
+  }
+
+  html.dark .text-bark {
+    color: rgb(241 245 249);
+  }
+
+  html.dark .text-slate-500 {
+    color: rgb(148 163 184);
+  }
+
+  html.dark .text-slate-600 {
+    color: rgb(203 213 225);
+  }
+
+  html.dark .text-slate-700 {
+    color: rgb(226 232 240);
+  }
+
+  html.dark .text-slate-900 {
+    color: rgb(248 250 252);
+  }
+
+  html.dark .text-amber-800 {
+    color: rgb(253 224 71);
+  }
+
+  html.dark .text-sky-800 {
+    color: rgb(186 230 253);
+  }
+
+  html.dark .text-indigo-800 {
+    color: rgb(199 210 254);
+  }
+
+  html.dark .text-emerald-800,
+  html.dark .text-emerald-900 {
+    color: rgb(167 243 208);
+  }
+
+  html.dark .text-rose-800,
+  html.dark .text-rose-900 {
+    color: rgb(254 205 211);
+  }
+
+  html.dark .border-white\/30 {
+    border-color: rgb(255 255 255 / 0.16);
+  }
+
+  html.dark .border-white\/60,
+  html.dark .border-white\/80,
+  html.dark .border-moss\/10,
+  html.dark .border-moss\/15,
+  html.dark .border-moss\/30,
+  html.dark .border-slate-100,
+  html.dark .border-slate-200,
+  html.dark .border-slate-300 {
+    border-color: rgb(var(--surface-border));
+  }
+
+  html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgb(var(--surface-border) / 0.7);
+  }
+
+  html.dark .ring-black\/5 {
+    --tw-ring-color: rgb(255 255 255 / 0.08);
+  }
+
+  html.dark .hover\:bg-white:hover {
+    background-color: rgb(30 41 59);
+  }
+
+  html.dark .hover\:bg-white\/10:hover {
+    background-color: rgb(2 6 23 / 0.08);
+  }
+
+  html.dark .bg-moss.text-white,
+  html.dark .bg-moss .text-white {
+    color: rgb(var(--accent-solid-text));
+  }
+
+  html.dark .bg-moss .text-white\/70 {
+    color: rgb(var(--accent-solid-text) / 0.72);
+  }
+}
