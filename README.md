@@ -149,6 +149,21 @@ Set these environment variables on Render:
 
 Important: startup only auto-creates `pending_registrations`. On a fresh hosted database, run `database/schema.sql` first or other tables such as `users`, `plants`, `carts`, and `orders` will still be missing.
 
+## Render Frontend Deploy
+
+Deploy the frontend as a Render Static Site with:
+
+- Root Directory: `frontend`
+- Build Command: `npm install && npm run build`
+- Publish Directory: `frontend/dist/frontend/browser`
+
+Add these frontend environment variables on Render so the generated runtime config points to your backend:
+
+- `FRONTEND_API_BASE_URL=https://your-backend-service.onrender.com/api`
+- `FRONTEND_ASSET_BASE_URL=https://your-backend-service.onrender.com`
+
+For Angular client-side routing, add a rewrite from `/*` to `/index.html`. The included `render.yaml` already defines this route for the frontend static site.
+
 ## Seed Data
 
 `database/seed.sql` includes:

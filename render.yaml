@@ -27,3 +27,18 @@ services:
         sync: false
       - key: SMTP_FROM
         sync: false
+  - type: web
+    name: nursery-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./frontend/dist/frontend/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: FRONTEND_API_BASE_URL
+        sync: false
+      - key: FRONTEND_ASSET_BASE_URL
+        sync: false

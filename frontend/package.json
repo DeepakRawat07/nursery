@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development"
+    "start": "node ./scripts/write-runtime-config.mjs && ng serve",
+    "build": "node ./scripts/write-runtime-config.mjs && ng build --configuration production",
+    "watch": "node ./scripts/write-runtime-config.mjs && ng build --watch --configuration development"
   },
   "dependencies": {
     "@angular/animations": "^19.2.0",
