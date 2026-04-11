@@ -2,25 +2,38 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const parseBoolean = (value, fallback) =>
+  typeof value === 'string' ? value === 'true' : fallback;
+
 const smtpPort = Number(process.env.SMTP_PORT || 587);
+const nodeEnv = process.env.NODE_ENV || 'development';
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  (nodeEnv === 'production'
+    ? ''
+    : 'postgresql://postgres:postgres@localhost:5432/nursery_store');
+
+if (nodeEnv === 'production' && !databaseUrl) {
+  throw new Error('DATABASE_URL is required in production.');
+}
 
 const env = {
   port: Number(process.env.PORT || 4000),
-  nodeEnv: process.env.NODE_ENV || 'development',
+  nodeEnv,
   clientUrl: process.env.CLIENT_URL || 'http://localhost:4200',
-  databaseUrl:
-    process.env.DATABASE_URL ||
-    'postgresql://postgres:postgres@localhost:5432/nursery_store',
+  databaseUrl,
+  databaseSsl: parseBoolean(process.env.DATABASE_SSL, nodeEnv === 'production'),
+  databaseSslRejectUnauthorized: parseBoolean(
+    process.env.DATABASE_SSL_REJECT_UNAUTHORIZED,
+    false
+  ),
   jwtSecret: process.env.JWT_SECRET || 'replace-with-a-long-random-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
   maxFileSize: Number(process.env.MAX_FILE_SIZE || 5242880),
   smtpHost: process.env.SMTP_HOST || '',
   smtpPort,
-  smtpSecure:
-    typeof process.env.SMTP_SECURE === 'string'
-      ? process.env.SMTP_SECURE === 'true'
-      : smtpPort === 465,
+  smtpSecure: parseBoolean(process.env.SMTP_SECURE, smtpPort === 465),
   smtpService: process.env.SMTP_SERVICE || '',
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',

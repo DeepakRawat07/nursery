@@ -130,6 +130,25 @@ SMTP_FROM=Nursery Store <store@example.com>
 
 If you leave SMTP empty in development, the register page will display the OTP directly for local testing.
 
+## Render Backend Deploy
+
+Deploy the backend as a separate Render Node web service with:
+
+- Root Directory: `backend`
+- Build Command: `npm install`
+- Start Command: `npm start`
+
+Set these environment variables on Render:
+
+- `NODE_ENV=production`
+- `CLIENT_URL=https://your-frontend-domain`
+- `DATABASE_URL=<your-render-postgres-url>`
+- `DATABASE_SSL=true`
+- `DATABASE_SSL_REJECT_UNAUTHORIZED=false`
+- `JWT_SECRET=<long-random-secret>`
+
+Important: startup only auto-creates `pending_registrations`. On a fresh hosted database, run `database/schema.sql` first or other tables such as `users`, `plants`, `carts`, and `orders` will still be missing.
+
 ## Seed Data
 
 `database/seed.sql` includes:
