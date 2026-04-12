@@ -1,8 +1,8 @@
 import { getRuntimeConfig } from './runtime-config';
 
 const runtimeConfig = getRuntimeConfig({
-  apiBaseUrl: 'http://localhost:4000/api',
-  assetBaseUrl: 'http://localhost:4000'
+  apiBaseUrl: 'https://nursery-fpgp.onrender.com/api',
+  assetBaseUrl: 'https://nursery-fpgp.onrender.com'
 });
 
 export const environment = {
