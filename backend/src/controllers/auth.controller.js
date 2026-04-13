@@ -41,6 +41,7 @@ export const requestRegistrationOtp = asyncHandler(async (req, res) => {
   });
 
   const emailDeliveryConfigured = isEmailDeliveryConfigured();
+  let deliveryMethod = emailDeliveryConfigured ? 'email' : 'development';
 
   if (emailDeliveryConfigured) {
     try {
@@ -51,31 +52,40 @@ export const requestRegistrationOtp = asyncHandler(async (req, res) => {
         expiresInMinutes: env.otpExpiresMinutes
       });
     } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
+      console.error('Failed to send registration OTP email', {
+        email: payload.email,
+        message: error instanceof Error ? error.message : String(error)
+      });
 
-      throw new ApiError(500, 'Unable to send the verification code. Please try again.');
+      if (env.allowDevOtpInProduction) {
+        deliveryMethod = 'development';
+      } else if (error instanceof ApiError) {
+        throw error;
+      } else {
+        throw new ApiError(500, 'Unable to send the verification code. Please try again.');
+      }
     }
-  } else if (env.nodeEnv === 'production') {
+  } else if (env.nodeEnv === 'production' && !env.allowDevOtpInProduction) {
     throw new ApiError(
       500,
       'Email delivery is not configured. Set SMTP_SERVICE or SMTP_HOST, plus SMTP_USER, SMTP_PASS, and SMTP_FROM.'
     );
   } else {
+    deliveryMethod = 'development';
     console.info(`[DEV OTP] Registration code for ${payload.email}: ${otp}`);
   }
 
   res.status(202).json({
     success: true,
-    message: emailDeliveryConfigured
-      ? 'Verification code sent to your email.'
-      : 'Local testing mode is active. Use the OTP shown in the app.',
+    message:
+      deliveryMethod === 'email'
+        ? 'Verification code sent to your email.'
+        : 'Local testing mode is active. Use the OTP shown in the app.',
     data: {
       email: payload.email,
       expiresInMinutes: env.otpExpiresMinutes,
-      deliveryMethod: emailDeliveryConfigured ? 'email' : 'development',
-      devOtp: emailDeliveryConfigured ? undefined : otp
+      deliveryMethod,
+      devOtp: deliveryMethod === 'development' ? otp : undefined
     }
   });
 });

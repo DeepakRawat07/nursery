@@ -21,6 +21,7 @@ const env = {
   port: Number(process.env.PORT || 4000),
   nodeEnv,
   clientUrl: process.env.CLIENT_URL || 'http://localhost:4200',
+  allowDevOtpInProduction: parseBoolean(process.env.ALLOW_DEV_OTP_IN_PRODUCTION, false),
   databaseUrl,
   databaseSsl: parseBoolean(process.env.DATABASE_SSL, nodeEnv === 'production'),
   databaseSslRejectUnauthorized: parseBoolean(

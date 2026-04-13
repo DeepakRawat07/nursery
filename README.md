@@ -142,6 +142,7 @@ Set these environment variables on Render:
 
 - `NODE_ENV=production`
 - `CLIENT_URL=https://your-frontend-domain`
+- `ALLOW_DEV_OTP_IN_PRODUCTION=false` by default. Set it to `true` only for testing if SMTP is failing and you want the OTP shown directly in the register page.
 - `DATABASE_URL=<your-render-postgres-url>`
 - `DATABASE_SSL=true`
 - `DATABASE_SSL_REJECT_UNAUTHORIZED=false`
