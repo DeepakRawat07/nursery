@@ -11,16 +11,29 @@ import router from './routes/index.js';
 
 const app = express();
 
+const allowedOrigins = [
+    env.clientUrl,
+    'http://localhost:4200',
+    'https://nursery-frontend-plum.vercel.app',
+    'https://nursery-frontend-clhxv3bll-deepaksuyal46s-projects.vercel.app'
+].filter(Boolean);
+
 app.use(
-  cors({
-    origin: env.clientUrl,
-    credentials: true
-  })
+    cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
+        credentials: true
+    })
 );
+
 app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' }
-  })
+    helmet({
+        crossOriginResourcePolicy: { policy: 'cross-origin' }
+    })
 );
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -29,13 +42,13 @@ app.use(attachDatabase(db));
 app.use('/uploads', express.static(path.resolve(env.uploadDir)));
 
 app.get('/api/health', (_req, res) => {
-  res.json({
-    success: true,
-    data: {
-      status: 'ok',
-      timestamp: new Date().toISOString()
-    }
-  });
+    res.json({
+        success: true,
+        data: {
+            status: 'ok',
+            timestamp: new Date().toISOString()
+        }
+    });
 });
 
 app.use('/api', router);
