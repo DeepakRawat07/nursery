@@ -2,7 +2,11 @@ import app from './app.js';
 import { ensurePendingRegistrationsTable } from './config/bootstrap.js';
 import db from './config/db.js';
 import env from './config/env.js';
-import { getEmailDeliveryStatus, verifyEmailTransport } from './utils/mailer.js';
+import {
+  getEmailDeliveryStatus,
+  getEmailErrorDetails,
+  verifyEmailTransport
+} from './utils/mailer.js';
 
 let server = null;
 
@@ -27,7 +31,7 @@ const start = async () => {
     } catch (error) {
       console.error('Email delivery transport verification failed.', {
         ...emailStatus.summary,
-        message: error instanceof Error ? error.message : String(error)
+        ...getEmailErrorDetails(error)
       });
     }
   }

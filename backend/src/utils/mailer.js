@@ -48,6 +48,35 @@ export const getEmailDeliveryStatus = () => {
   };
 };
 
+export const getEmailErrorDetails = (error) => {
+  if (!(error instanceof Error)) {
+    return { message: String(error) };
+  }
+
+  const details = {
+    name: error.name,
+    message: error.message
+  };
+
+  if ('code' in error && error.code) {
+    details.code = error.code;
+  }
+
+  if ('command' in error && error.command) {
+    details.command = error.command;
+  }
+
+  if ('responseCode' in error && error.responseCode) {
+    details.responseCode = error.responseCode;
+  }
+
+  if ('response' in error && error.response) {
+    details.response = error.response;
+  }
+
+  return details;
+};
+
 const escapeHtml = (value) =>
   value
     .replaceAll('&', '&amp;')

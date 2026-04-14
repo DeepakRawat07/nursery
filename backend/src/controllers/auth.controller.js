@@ -11,7 +11,11 @@ import env from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { signToken } from '../utils/jwt.js';
-import { isEmailDeliveryConfigured, sendRegistrationOtpEmail } from '../utils/mailer.js';
+import {
+  getEmailErrorDetails,
+  isEmailDeliveryConfigured,
+  sendRegistrationOtpEmail
+} from '../utils/mailer.js';
 import { generateOtpCode, hashOtpCode, verifyOtpCode } from '../utils/otp.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import {
@@ -54,7 +58,7 @@ export const requestRegistrationOtp = asyncHandler(async (req, res) => {
     } catch (error) {
       console.error('Failed to send registration OTP email', {
         email: payload.email,
-        message: error instanceof Error ? error.message : String(error)
+        ...getEmailErrorDetails(error)
       });
 
       if (env.allowDevOtpInProduction) {
