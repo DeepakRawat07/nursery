@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import db from './config/db.js';
 import env from './config/env.js';
+import { getEmailDeliveryHealth } from './utils/mailer.js';
 import { attachDatabase } from './middleware/auth.middleware.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 import router from './routes/index.js';
@@ -46,7 +47,8 @@ app.get('/api/health', (_req, res) => {
         success: true,
         data: {
             status: 'ok',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            email: getEmailDeliveryHealth()
         }
     });
 });

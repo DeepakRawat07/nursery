@@ -4,6 +4,7 @@ import ApiError from './ApiError.js';
 
 let transporter = null;
 let transporterVerified = false;
+let lastEmailTransportError = null;
 
 export const isEmailDeliveryConfigured = () =>
   Boolean((env.smtpService || env.smtpHost) && env.smtpUser && env.smtpPass && env.smtpFrom);
@@ -77,6 +78,19 @@ export const getEmailErrorDetails = (error) => {
   return details;
 };
 
+export const getEmailDeliveryHealth = () => {
+  const status = getEmailDeliveryStatus();
+
+  return {
+    configured: status.configured,
+    mode: status.mode,
+    missing: status.missing,
+    warnings: status.warnings,
+    ready: status.configured && transporterVerified && !lastEmailTransportError,
+    lastError: lastEmailTransportError
+  };
+};
+
 const escapeHtml = (value) =>
   value
     .replaceAll('&', '&amp;')
@@ -122,8 +136,15 @@ export const verifyEmailTransport = async () => {
   const mailer = getTransporter();
 
   if (!transporterVerified) {
-    await mailer.verify();
-    transporterVerified = true;
+    try {
+      await mailer.verify();
+      transporterVerified = true;
+      lastEmailTransportError = null;
+    } catch (error) {
+      transporterVerified = false;
+      lastEmailTransportError = getEmailErrorDetails(error);
+      throw error;
+    }
   }
 
   return mailer;
@@ -133,22 +154,28 @@ export const sendRegistrationOtpEmail = async ({ email, name, otp, expiresInMinu
   const mailer = await verifyEmailTransport();
   const safeName = escapeHtml(name);
 
-  await mailer.sendMail({
-    from: env.smtpFrom,
-    to: email,
-    subject: 'Your Nursery Store verification code',
-    text: `Hello ${name}, your verification code is ${otp}. It expires in ${expiresInMinutes} minutes.`,
-    html: `
-      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:560px;margin:0 auto;padding:24px">
-        <p style="margin:0 0 12px">Hello ${safeName},</p>
-        <p style="margin:0 0 18px">Use the verification code below to complete your Nursery Store registration.</p>
-        <div style="margin:0 0 18px;padding:16px 20px;border-radius:16px;background:#f5efe4;border:1px solid #d9d0c2;text-align:center">
-          <div style="font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#5b4435;margin-bottom:8px">Verification code</div>
-          <div style="font-size:32px;font-weight:700;letter-spacing:0.28em;color:#214b37">${otp}</div>
+  try {
+    await mailer.sendMail({
+      from: env.smtpFrom,
+      to: email,
+      subject: 'Your Nursery Store verification code',
+      text: `Hello ${name}, your verification code is ${otp}. It expires in ${expiresInMinutes} minutes.`,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:560px;margin:0 auto;padding:24px">
+          <p style="margin:0 0 12px">Hello ${safeName},</p>
+          <p style="margin:0 0 18px">Use the verification code below to complete your Nursery Store registration.</p>
+          <div style="margin:0 0 18px;padding:16px 20px;border-radius:16px;background:#f5efe4;border:1px solid #d9d0c2;text-align:center">
+            <div style="font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#5b4435;margin-bottom:8px">Verification code</div>
+            <div style="font-size:32px;font-weight:700;letter-spacing:0.28em;color:#214b37">${otp}</div>
+          </div>
+          <p style="margin:0 0 12px">This code expires in ${expiresInMinutes} minutes.</p>
+          <p style="margin:0;color:#64748b;font-size:14px">If you did not request this code, you can ignore this email.</p>
         </div>
-        <p style="margin:0 0 12px">This code expires in ${expiresInMinutes} minutes.</p>
-        <p style="margin:0;color:#64748b;font-size:14px">If you did not request this code, you can ignore this email.</p>
-      </div>
-    `
-  });
+      `
+    });
+    lastEmailTransportError = null;
+  } catch (error) {
+    lastEmailTransportError = getEmailErrorDetails(error);
+    throw error;
+  }
 };
