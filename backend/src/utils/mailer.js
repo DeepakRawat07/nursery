@@ -3,9 +3,50 @@ import env from '../config/env.js';
 import ApiError from './ApiError.js';
 
 let transporter = null;
+let transporterVerified = false;
 
 export const isEmailDeliveryConfigured = () =>
   Boolean((env.smtpService || env.smtpHost) && env.smtpUser && env.smtpPass && env.smtpFrom);
+
+export const getEmailDeliveryStatus = () => {
+  const missing = [];
+  const warnings = [];
+
+  if (!env.smtpService && !env.smtpHost) {
+    missing.push('SMTP_SERVICE or SMTP_HOST');
+  }
+
+  if (!env.smtpUser) {
+    missing.push('SMTP_USER');
+  }
+
+  if (!env.smtpPass) {
+    missing.push('SMTP_PASS');
+  }
+
+  if (!env.smtpFrom) {
+    missing.push('SMTP_FROM');
+  }
+
+  if (!env.smtpService && env.smtpHost && env.smtpPort === 465 && !env.smtpSecure) {
+    warnings.push('SMTP_PORT is 465, so SMTP_SECURE was forced to true for the transport.');
+  }
+
+  return {
+    configured: missing.length === 0,
+    mode: env.smtpService ? 'service' : env.smtpHost ? 'host' : 'disabled',
+    missing,
+    warnings,
+    summary: {
+      service: env.smtpService || null,
+      host: env.smtpHost || null,
+      port: env.smtpPort,
+      secure: env.smtpService ? null : env.smtpSecure || env.smtpPort === 465,
+      user: env.smtpUser || null,
+      from: env.smtpFrom || null
+    }
+  };
+};
 
 const escapeHtml = (value) =>
   value
@@ -35,7 +76,7 @@ const getTransporter = () => {
       : {
           host: env.smtpHost,
           port: env.smtpPort,
-          secure: env.smtpSecure,
+          secure: env.smtpSecure || env.smtpPort === 465,
           auth: {
             user: env.smtpUser,
             pass: env.smtpPass
@@ -48,8 +89,19 @@ const getTransporter = () => {
   return transporter;
 };
 
-export const sendRegistrationOtpEmail = async ({ email, name, otp, expiresInMinutes }) => {
+export const verifyEmailTransport = async () => {
   const mailer = getTransporter();
+
+  if (!transporterVerified) {
+    await mailer.verify();
+    transporterVerified = true;
+  }
+
+  return mailer;
+};
+
+export const sendRegistrationOtpEmail = async ({ email, name, otp, expiresInMinutes }) => {
+  const mailer = await verifyEmailTransport();
   const safeName = escapeHtml(name);
 
   await mailer.sendMail({
