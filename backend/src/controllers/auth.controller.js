@@ -72,7 +72,7 @@ export const requestRegistrationOtp = asyncHandler(async (req, res) => {
   } else if (env.nodeEnv === 'production' && !env.allowDevOtpInProduction) {
     throw new ApiError(
       500,
-      'Email delivery is not configured. Set SMTP_SERVICE or SMTP_HOST, plus SMTP_USER, SMTP_PASS, and SMTP_FROM.'
+      'Email delivery is not configured. Set RESEND_API_KEY and EMAIL_FROM, or configure SMTP.'
     );
   } else {
     deliveryMethod = 'development';

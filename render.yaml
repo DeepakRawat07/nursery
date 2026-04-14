@@ -21,6 +21,10 @@ services:
         value: "false"
       - key: JWT_SECRET
         generateValue: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
       - key: SMTP_SERVICE
         sync: false
       - key: SMTP_HOST

@@ -32,13 +32,15 @@ const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
   maxFileSize: Number(process.env.MAX_FILE_SIZE || 5242880),
+  resendApiKey: process.env.RESEND_API_KEY || '',
+  emailFrom: process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || '',
   smtpHost: process.env.SMTP_HOST || '',
   smtpPort,
   smtpSecure: parseBoolean(process.env.SMTP_SECURE, smtpPort === 465),
   smtpService: process.env.SMTP_SERVICE || '',
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
-  smtpFrom: process.env.SMTP_FROM || process.env.SMTP_USER || '',
+  smtpFrom: process.env.SMTP_FROM || process.env.EMAIL_FROM || process.env.SMTP_USER || '',
   otpExpiresMinutes: Number(process.env.OTP_EXPIRES_MINUTES || 10)
 };
 

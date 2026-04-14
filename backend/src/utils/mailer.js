@@ -3,53 +3,86 @@ import nodemailer from 'nodemailer';
 import env from '../config/env.js';
 import ApiError from './ApiError.js';
 
+const RESEND_API_URL = 'https://api.resend.com/emails';
+
 let transporter = null;
 let transporterVerified = false;
 let lastEmailTransportError = null;
 
+const getDeliveryMode = () => {
+  if (env.resendApiKey) {
+    return 'resend';
+  }
+
+  if (env.smtpHost) {
+    return 'host';
+  }
+
+  if (env.smtpService) {
+    return 'service';
+  }
+
+  return 'disabled';
+};
+
 export const isEmailDeliveryConfigured = () =>
-  Boolean((env.smtpService || env.smtpHost) && env.smtpUser && env.smtpPass && env.smtpFrom);
+  Boolean(
+    (env.resendApiKey && env.emailFrom) ||
+      ((env.smtpService || env.smtpHost) && env.smtpUser && env.smtpPass && env.emailFrom)
+  );
 
 export const getEmailDeliveryStatus = () => {
   const missing = [];
   const warnings = [];
+  const mode = getDeliveryMode();
 
-  if (!env.smtpHost && !env.smtpService) {
-    missing.push('SMTP_SERVICE or SMTP_HOST');
-  }
+  if (mode === 'resend') {
+    if (!env.emailFrom) {
+      missing.push('EMAIL_FROM');
+    }
 
-  if (env.smtpHost && env.smtpService) {
-    warnings.push('SMTP_HOST is set, so SMTP_SERVICE is ignored and host mode is used.');
-  }
+    if (env.smtpHost || env.smtpService || env.smtpUser || env.smtpPass) {
+      warnings.push('RESEND_API_KEY is set, so SMTP configuration is ignored.');
+    }
+  } else {
+    if (!env.resendApiKey && !env.smtpHost && !env.smtpService) {
+      missing.push('RESEND_API_KEY or SMTP_SERVICE or SMTP_HOST');
+    }
 
-  if (!env.smtpUser) {
-    missing.push('SMTP_USER');
-  }
+    if (env.smtpHost && env.smtpService) {
+      warnings.push('SMTP_HOST is set, so SMTP_SERVICE is ignored and host mode is used.');
+    }
 
-  if (!env.smtpPass) {
-    missing.push('SMTP_PASS');
-  }
+    if (!env.smtpUser) {
+      missing.push('SMTP_USER');
+    }
 
-  if (!env.smtpFrom) {
-    missing.push('SMTP_FROM');
-  }
+    if (!env.smtpPass) {
+      missing.push('SMTP_PASS');
+    }
 
-  if (!env.smtpService && env.smtpHost && env.smtpPort === 465 && !env.smtpSecure) {
-    warnings.push('SMTP_PORT is 465, so SMTP_SECURE was forced to true for the transport.');
+    if (!env.emailFrom) {
+      missing.push('EMAIL_FROM or SMTP_FROM');
+    }
+
+    if (!env.smtpService && env.smtpHost && env.smtpPort === 465 && !env.smtpSecure) {
+      warnings.push('SMTP_PORT is 465, so SMTP_SECURE was forced to true for the transport.');
+    }
   }
 
   return {
     configured: missing.length === 0,
-    mode: env.smtpHost ? 'host' : env.smtpService ? 'service' : 'disabled',
+    mode,
     missing,
     warnings,
     summary: {
-      service: env.smtpHost ? null : env.smtpService || null,
-      host: env.smtpHost || null,
-      port: env.smtpPort,
-      secure: env.smtpSecure || env.smtpPort === 465,
-      user: env.smtpUser || null,
-      from: env.smtpFrom || null
+      provider: mode,
+      service: mode === 'service' ? env.smtpService || null : null,
+      host: mode === 'host' ? env.smtpHost || null : null,
+      port: mode === 'host' ? env.smtpPort : null,
+      secure: mode === 'host' ? env.smtpSecure || env.smtpPort === 465 : null,
+      user: mode === 'resend' ? null : env.smtpUser || null,
+      from: env.emailFrom || null
     }
   };
 };
@@ -104,6 +137,26 @@ const escapeHtml = (value) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 
+const createEmailContent = ({ name, otp, expiresInMinutes }) => {
+  const safeName = escapeHtml(name);
+
+  return {
+    text: `Hello ${name}, your verification code is ${otp}. It expires in ${expiresInMinutes} minutes.`,
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:560px;margin:0 auto;padding:24px">
+        <p style="margin:0 0 12px">Hello ${safeName},</p>
+        <p style="margin:0 0 18px">Use the verification code below to complete your Nursery Store registration.</p>
+        <div style="margin:0 0 18px;padding:16px 20px;border-radius:16px;background:#f5efe4;border:1px solid #d9d0c2;text-align:center">
+          <div style="font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#5b4435;margin-bottom:8px">Verification code</div>
+          <div style="font-size:32px;font-weight:700;letter-spacing:0.28em;color:#214b37">${otp}</div>
+        </div>
+        <p style="margin:0 0 12px">This code expires in ${expiresInMinutes} minutes.</p>
+        <p style="margin:0;color:#64748b;font-size:14px">If you did not request this code, you can ignore this email.</p>
+      </div>
+    `
+  };
+};
+
 const getHostTransportConfig = async () => {
   const hostname = env.smtpHost;
 
@@ -132,10 +185,14 @@ const getHostTransportConfig = async () => {
 };
 
 const getTransporter = async () => {
+  if (getDeliveryMode() === 'resend') {
+    return null;
+  }
+
   if (!isEmailDeliveryConfigured()) {
     throw new ApiError(
       500,
-      'Email delivery is not configured. Set SMTP_SERVICE or SMTP_HOST, plus SMTP_USER, SMTP_PASS, and SMTP_FROM.'
+      'Email delivery is not configured. Set RESEND_API_KEY and EMAIL_FROM, or configure SMTP.'
     );
   }
 
@@ -157,6 +214,12 @@ const getTransporter = async () => {
 };
 
 export const verifyEmailTransport = async () => {
+  if (getDeliveryMode() === 'resend') {
+    transporterVerified = true;
+    lastEmailTransportError = null;
+    return null;
+  }
+
   const mailer = await getTransporter();
 
   if (!transporterVerified) {
@@ -174,32 +237,63 @@ export const verifyEmailTransport = async () => {
   return mailer;
 };
 
-export const sendRegistrationOtpEmail = async ({ email, name, otp, expiresInMinutes }) => {
-  const mailer = await verifyEmailTransport();
-  const safeName = escapeHtml(name);
+const sendViaResend = async ({ email, name, otp, expiresInMinutes }) => {
+  const content = createEmailContent({ name, otp, expiresInMinutes });
+  const response = await fetch(RESEND_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.resendApiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: env.emailFrom,
+      to: [email],
+      subject: 'Your Nursery Store verification code',
+      text: content.text,
+      html: content.html
+    })
+  });
 
+  if (response.ok) {
+    transporterVerified = true;
+    lastEmailTransportError = null;
+    return;
+  }
+
+  const responseText = await response.text();
+  const error = new Error(`Resend API request failed with status ${response.status}.`);
+
+  Object.assign(error, {
+    code: 'RESEND_API_ERROR',
+    command: 'SEND',
+    responseCode: response.status,
+    response: responseText
+  });
+
+  throw error;
+};
+
+export const sendRegistrationOtpEmail = async ({ email, name, otp, expiresInMinutes }) => {
   try {
+    if (getDeliveryMode() === 'resend') {
+      await sendViaResend({ email, name, otp, expiresInMinutes });
+      return;
+    }
+
+    const mailer = await verifyEmailTransport();
+    const content = createEmailContent({ name, otp, expiresInMinutes });
+
     await mailer.sendMail({
-      from: env.smtpFrom,
+      from: env.emailFrom,
       to: email,
       subject: 'Your Nursery Store verification code',
-      text: `Hello ${name}, your verification code is ${otp}. It expires in ${expiresInMinutes} minutes.`,
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:560px;margin:0 auto;padding:24px">
-          <p style="margin:0 0 12px">Hello ${safeName},</p>
-          <p style="margin:0 0 18px">Use the verification code below to complete your Nursery Store registration.</p>
-          <div style="margin:0 0 18px;padding:16px 20px;border-radius:16px;background:#f5efe4;border:1px solid #d9d0c2;text-align:center">
-            <div style="font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#5b4435;margin-bottom:8px">Verification code</div>
-            <div style="font-size:32px;font-weight:700;letter-spacing:0.28em;color:#214b37">${otp}</div>
-          </div>
-          <p style="margin:0 0 12px">This code expires in ${expiresInMinutes} minutes.</p>
-          <p style="margin:0;color:#64748b;font-size:14px">If you did not request this code, you can ignore this email.</p>
-        </div>
-      `
+      text: content.text,
+      html: content.html
     });
     lastEmailTransportError = null;
   } catch (error) {
     lastEmailTransportError = getEmailErrorDetails(error);
+    transporterVerified = false;
     throw error;
   }
 };
