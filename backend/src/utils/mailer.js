@@ -35,6 +35,7 @@ export const getEmailDeliveryStatus = () => {
   const missing = [];
   const warnings = [];
   const mode = getDeliveryMode();
+  const hasSmtpConfig = Boolean(env.smtpHost || env.smtpService);
 
   if (mode === 'resend') {
     if (!env.emailFrom) {
@@ -45,28 +46,31 @@ export const getEmailDeliveryStatus = () => {
       warnings.push('RESEND_API_KEY is set, so SMTP configuration is ignored.');
     }
   } else {
-    if (!env.resendApiKey && !env.smtpHost && !env.smtpService) {
+    if (!env.resendApiKey && !hasSmtpConfig) {
       missing.push('RESEND_API_KEY or SMTP_SERVICE or SMTP_HOST');
-    }
+      if (!env.emailFrom) {
+        missing.push('EMAIL_FROM or SMTP_FROM');
+      }
+    } else {
+      if (env.smtpHost && env.smtpService) {
+        warnings.push('SMTP_HOST is set, so SMTP_SERVICE is ignored and host mode is used.');
+      }
 
-    if (env.smtpHost && env.smtpService) {
-      warnings.push('SMTP_HOST is set, so SMTP_SERVICE is ignored and host mode is used.');
-    }
+      if (!env.smtpUser) {
+        missing.push('SMTP_USER');
+      }
 
-    if (!env.smtpUser) {
-      missing.push('SMTP_USER');
-    }
+      if (!env.smtpPass) {
+        missing.push('SMTP_PASS');
+      }
 
-    if (!env.smtpPass) {
-      missing.push('SMTP_PASS');
-    }
+      if (!env.emailFrom) {
+        missing.push('EMAIL_FROM or SMTP_FROM');
+      }
 
-    if (!env.emailFrom) {
-      missing.push('EMAIL_FROM or SMTP_FROM');
-    }
-
-    if (!env.smtpService && env.smtpHost && env.smtpPort === 465 && !env.smtpSecure) {
-      warnings.push('SMTP_PORT is 465, so SMTP_SECURE was forced to true for the transport.');
+      if (!env.smtpService && env.smtpHost && env.smtpPort === 465 && !env.smtpSecure) {
+        warnings.push('SMTP_PORT is 465, so SMTP_SECURE was forced to true for the transport.');
+      }
     }
   }
 
