@@ -1,3 +1,4 @@
+import dns from 'node:dns/promises';
 import nodemailer from 'nodemailer';
 import env from '../config/env.js';
 import ApiError from './ApiError.js';
@@ -13,8 +14,12 @@ export const getEmailDeliveryStatus = () => {
   const missing = [];
   const warnings = [];
 
-  if (!env.smtpService && !env.smtpHost) {
+  if (!env.smtpHost && !env.smtpService) {
     missing.push('SMTP_SERVICE or SMTP_HOST');
+  }
+
+  if (env.smtpHost && env.smtpService) {
+    warnings.push('SMTP_HOST is set, so SMTP_SERVICE is ignored and host mode is used.');
   }
 
   if (!env.smtpUser) {
@@ -35,14 +40,14 @@ export const getEmailDeliveryStatus = () => {
 
   return {
     configured: missing.length === 0,
-    mode: env.smtpService ? 'service' : env.smtpHost ? 'host' : 'disabled',
+    mode: env.smtpHost ? 'host' : env.smtpService ? 'service' : 'disabled',
     missing,
     warnings,
     summary: {
-      service: env.smtpService || null,
+      service: env.smtpHost ? null : env.smtpService || null,
       host: env.smtpHost || null,
       port: env.smtpPort,
-      secure: env.smtpService ? null : env.smtpSecure || env.smtpPort === 465,
+      secure: env.smtpSecure || env.smtpPort === 465,
       user: env.smtpUser || null,
       from: env.smtpFrom || null
     }
@@ -99,7 +104,34 @@ const escapeHtml = (value) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 
-const getTransporter = () => {
+const getHostTransportConfig = async () => {
+  const hostname = env.smtpHost;
+
+  if (!hostname) {
+    throw new ApiError(500, 'SMTP_HOST is required for host-based email delivery.');
+  }
+
+  const [ipv4Address] = await dns.resolve4(hostname);
+
+  if (!ipv4Address) {
+    throw new ApiError(500, `No IPv4 address found for SMTP host ${hostname}.`);
+  }
+
+  return {
+    host: ipv4Address,
+    port: env.smtpPort,
+    secure: env.smtpSecure || env.smtpPort === 465,
+    auth: {
+      user: env.smtpUser,
+      pass: env.smtpPass
+    },
+    tls: {
+      servername: hostname
+    }
+  };
+};
+
+const getTransporter = async () => {
   if (!isEmailDeliveryConfigured()) {
     throw new ApiError(
       500,
@@ -108,18 +140,10 @@ const getTransporter = () => {
   }
 
   if (!transporter) {
-    const transportConfig = env.smtpService
-      ? {
-          service: env.smtpService,
-          auth: {
-            user: env.smtpUser,
-            pass: env.smtpPass
-          }
-        }
+    const transportConfig = env.smtpHost
+      ? await getHostTransportConfig()
       : {
-          host: env.smtpHost,
-          port: env.smtpPort,
-          secure: env.smtpSecure || env.smtpPort === 465,
+          service: env.smtpService,
           auth: {
             user: env.smtpUser,
             pass: env.smtpPass
@@ -133,7 +157,7 @@ const getTransporter = () => {
 };
 
 export const verifyEmailTransport = async () => {
-  const mailer = getTransporter();
+  const mailer = await getTransporter();
 
   if (!transporterVerified) {
     try {
