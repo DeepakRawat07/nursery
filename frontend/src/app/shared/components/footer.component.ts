@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   COMPANY_DESCRIPTION,
-  COMPANY_NAME,
   CONTACT_INFO
 } from '../contact-info';
 
@@ -14,8 +13,14 @@ import {
     <footer class="border-t border-white/60 bg-white/70">
       <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.15fr,0.75fr,0.9fr] lg:px-8">
         <div>
-          <p class="font-serif text-4xl text-moss">{{ companyName }}</p>
-          <p class="mt-3 max-w-xl text-sm leading-7 text-slate-600">
+          <img
+            src="assets/uttarakhand-succulent-logo.svg"
+            alt="Uttarakhand Succulent"
+            width="640"
+            height="144"
+            class="block h-12 w-auto sm:h-14"
+          />
+          <p class="mt-4 max-w-xl text-sm leading-7 text-slate-600">
             {{ companyDescription }}
           </p>
           <div class="mt-5 flex flex-wrap gap-3">
@@ -73,7 +78,6 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FooterComponent {
-  readonly companyName = COMPANY_NAME;
   readonly companyDescription = COMPANY_DESCRIPTION;
   readonly contactInfo = CONTACT_INFO;
 }

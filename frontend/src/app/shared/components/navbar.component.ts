@@ -4,7 +4,6 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { COMPANY_NAME, COMPANY_TAGLINE } from '../contact-info';
 import { WishlistService } from '../../core/services/wishlist.service';
 
 @Component({
@@ -14,14 +13,14 @@ import { WishlistService } from '../../core/services/wishlist.service';
   template: `
     <header class="sticky top-0 z-30 border-b border-white/60 bg-seed/80 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <a routerLink="/" class="flex items-center gap-3">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-moss text-sm font-bold tracking-[0.18em] text-white">
-            US
-          </div>
-          <div>
-            <p class="font-serif text-3xl leading-none text-moss">{{ companyName }}</p>
-            <p class="text-xs uppercase tracking-[0.28em] text-slate-500">{{ companyTagline }}</p>
-          </div>
+        <a routerLink="/" class="shrink-0">
+          <img
+            src="assets/uttarakhand-succulent-logo.svg"
+            alt="Uttarakhand Succulent"
+            width="640"
+            height="144"
+            class="block h-10 w-auto sm:h-12 lg:h-14"
+          />
         </a>
 
         <button
@@ -304,8 +303,6 @@ import { WishlistService } from '../../core/services/wishlist.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NavbarComponent {
-  readonly companyName = COMPANY_NAME;
-  readonly companyTagline = COMPANY_TAGLINE;
   readonly authService = inject(AuthService);
   readonly cartService = inject(CartService);
   readonly themeService = inject(ThemeService);

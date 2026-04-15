@@ -1,7 +1,7 @@
-export const COMPANY_NAME = 'UTTARAKHANDSUCCULENT';
+export const COMPANY_NAME = 'Uttarakhand Succulent';
 export const COMPANY_TAGLINE = 'Bhimtal, Nainital';
 export const COMPANY_DESCRIPTION =
-  'UTTARAKHANDSUCCULENT offers curated plants, rooted service, and a reliable nursery experience from Bhimtal.';
+  'Uttarakhand Succulent offers curated plants, rooted service, and a reliable nursery experience from Bhimtal.';
 
 export const CONTACT_INFO = {
   address: 'Bhimtal, Nainital',

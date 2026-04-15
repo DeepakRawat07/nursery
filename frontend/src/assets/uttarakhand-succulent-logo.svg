@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="144" viewBox="0 0 640 144" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">Uttarakhand Succulent</title>
+  <desc id="logo-desc">Minimalist logo with a mountain and leaf icon beside the Uttarakhand Succulent wordmark.</desc>
+  <rect width="640" height="144" rx="28" fill="#ffffff" />
+  <rect x="0.75" y="0.75" width="638.5" height="142.5" rx="27.25" fill="none" stroke="#e5e7eb" stroke-width="1.5" />
+  <g transform="translate(26 24)">
+    <rect width="96" height="96" rx="24" fill="#f5f8f4" />
+    <path d="M18 69 36 49 49 60 67 37 79 49v29H18Z" fill="#ebf4ec" />
+    <path d="M18 69 36 49 49 60 67 37 79 49" fill="none" stroke="#2f3b35" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M16 78h64" stroke="#2f3b35" stroke-width="4.5" stroke-linecap="round" />
+    <path d="M61 25c8.8 0 16 7.2 16 16-8.8 0-16-7.2-16-16Z" fill="#5ca86b" />
+    <path d="M61 25c-8.8 0-16 7.2-16 16 8.8 0 16-7.2 16-16Z" fill="#7bc47f" />
+    <path d="M61 25v22" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.92" />
+  </g>
+  <text x="148" y="68" fill="#1f2937" font-family="Sora, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="-0.03em">Uttarakhand</text>
+  <text x="148" y="108" fill="#4c9a5d" font-family="Sora, Arial, sans-serif" font-size="34" font-weight="600" letter-spacing="-0.02em">Succulent</text>
+</svg>
